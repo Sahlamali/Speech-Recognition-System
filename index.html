@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+<meta name="description" content="speech to text">
+<meta name="author" content="Sahla Muhammed Ali">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="HandheldFriendly" content="true" />
+<meta name="MobileOptimized" content="width" />
+<title>Speech Recognizer
+</title>
+<meta charset="utf-8">
+<link rel="stylesheet" media="screen" href="speechStyle.css">
+</head>
+
+<body>
+<div id="banner"></div>
+<h1 id="heading">Speech Recognizer<h1>
+
+<br>
+<div class="right"><center>
+  <button id="start_button" onclick="startButton(event)">
+    <img id="start_img" src="img1.png" alt="Start"></button>
+	</center>
+</div>
+<br>
+
+<center>
+<div id="info">
+  
+  <p id="info_start">Click on this icon and begin speaking.</p>
+  <p id="info_speak_now">Speak now...</p>
+  
+</div>
+</center>
+<br>
+<center>
+
+<div id="results">
+  <span id="final_span" class="final"></span>
+  <span id="interim_span" class="interim"></span>
+  <p>
+</div>
+
+<center>
+
+<script>
+showInfo('info_start');
+
+var final_transcript = '';
+var recognizing = false;
+var ignore_onend;
+var start_timestamp;
+if (!('webkitSpeechRecognition' in window)) {
+  upgrade();
+} else {
+  start_button.style.display = 'inline-block';
+  var recognition = new webkitSpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  
+  //var recognition.onstart
+  recognition.onstart = function() {
+    recognizing = true;
+    showInfo('info_speak_now');
+    start_img.src = 'img1.png';
+  };
+  
+  //var recognition.onresult
+  recognition.onresult = function(event) {
+    var interim_transcript = '';
+    for (var i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        final_transcript += event.results[i][0].transcript;
+      } else {
+        interim_transcript += event.results[i][0].transcript;
+      }
+    }
+    final_transcript = capitalize(final_transcript);
+    final_span.innerHTML = linebreak(final_transcript);
+    interim_span.innerHTML = linebreak(interim_transcript);
+    if (final_transcript || interim_transcript) {
+      showButtons('inline-block');
+    }
+  };
+}
+
+var two_line = /\n\n/g;
+var one_line = /\n/g;
+function linebreak(s) {
+  return s.replace(two_line, '<p></p>').replace(one_line, '<br>');
+}
+var first_char = /\S/;
+function capitalize(s) {
+  return s.replace(first_char, function(m) { return m.toUpperCase(); });
+}
+
+function startButton(event) {
+  if (recognizing) {
+    recognition.stop();
+    return;
+  }
+  final_transcript = '';
+  recognition.lang = "en-US";
+  recognition.start();
+  ignore_onend = false;
+  final_span.innerHTML = '';
+  interim_span.innerHTML = '';
+  start_img.src = 'img1.png';
+  showInfo('info_allow');
+  showButtons('none');
+  start_timestamp = event.timeStamp;
+}
+
+function showInfo(s) {
+  if (s) {
+    for (var child = info.firstChild; child; child = child.nextSibling) {
+      if (child.style) {
+        child.style.display = child.id == s ? 'inline' : 'none';
+      }
+    }
+    info.style.visibility = 'visible';
+  } else {
+    info.style.visibility = 'hidden';
+  }
+}
+</script>
+</body>
+</html>
